@@ -2,6 +2,9 @@ node_modules/
 .next/
 dist/
 coverage/
+*.tsbuildinfo
+Thumbs.db
+.DS_Store
 .env
 .env.local
 .env.*.local
