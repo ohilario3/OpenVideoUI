@@ -1,95 +1,103 @@
 # OpenVideoUI
 
-Local-first creative studio for generating text, images, and videos through OpenRouter.
+A local-first creative studio for generating text, images, and videos through [OpenRouter](https://openrouter.ai/).
 
 ## Overview
 
-OpenVideoUI is a TypeScript monorepo built around a project-centered workflow:
+OpenVideoUI is a TypeScript monorepo designed around a project-centered workflow:
 
-- `projects` organize creative work
-- `renders` track image and video generations
-- `text chats` persist multi-turn text conversations
-- a background worker handles async video polling and model sync
+- **Projects** — organize creative work into dedicated workspaces
+- **Renders** — track image and video generation jobs with full lifecycle events
+- **Text Chats** — persist multi-turn conversations with AI models
+- **Background Worker** — handles async video polling and model capability syncing
 
-The app is designed to run locally with Docker and provides a single interface for:
+The application runs locally via Docker and provides a unified interface for:
 
-- text chat through OpenRouter chat models
-- text-to-image generation
-- text-to-video generation
-- image-to-video generation on supported models
-- model discovery and capability-aware UI
-- persistent local asset storage for generated media and uploaded backgrounds
+- Text generation through OpenRouter chat models
+- Text-to-image generation
+- Text-to-video generation
+- Image-to-video generation (on supported models)
+- Model discovery with capability-aware UI
+- Persistent local storage for generated media and uploaded assets
 
 ## Features
 
-- Local-first onboarding flow
+- Local-first onboarding with zero external dependencies
 - OpenRouter-backed text, image, and video generation
-- Async video job submission and polling
+- Async job submission with real-time polling
 - Project-centered workspace with persistent history
-- Persistent text chat threads
-- Persisted render lifecycle with events, input assets, and output assets
-- Settings for OpenRouter key, theme palette, display name, and background media
-- Local asset storage served through the app
+- Persistent text chat threads with full conversation history
+- Complete render lifecycle tracking (events, input/output assets)
+- Configurable settings: OpenRouter API key, theme palette, display name, background media
+- Local asset storage served through the application
 - Redis-backed queue layer for worker scheduling and recovery
 
 ## Tech Stack
 
-- `Next.js 15` + `React 19` for the web app
-- `TypeScript` across apps and packages
-- `Postgres` for users, projects, chats, renders, assets, and events
-- `Redis` for queueing and worker coordination
-- `Drizzle ORM` + `drizzle-kit` for schema and migrations
-- `Docker Compose` for local orchestration
-- `OpenRouter API` for models, chat, image generation, and video generation
+| Component | Technology |
+|-----------|------------|
+| Web Framework | Next.js 15.3.0 + React 19.1.0 |
+| Language | TypeScript 5.8.3 |
+| Database | PostgreSQL 16 |
+| Cache & Queue | Redis 7 |
+| ORM | Drizzle ORM 0.44.2 + Drizzle Kit 0.31.4 |
+| Container Orchestration | Docker Compose |
+| AI Gateway | OpenRouter API |
 
 ## Repository Layout
 
-```text
+```
 .
-â”œâ”€ apps/
-â”‚  â”œâ”€ web/         # Next.js app
-â”‚  â””â”€ worker/      # background worker for polling and model sync
-â”œâ”€ packages/
-â”‚  â”œâ”€ database/    # Drizzle schema and query layer
-â”‚  â”œâ”€ openrouter/  # OpenRouter client and types
-â”‚  â”œâ”€ queue/       # Redis-backed queue helpers
-â”‚  â”œâ”€ shared/      # shared runtime env and utilities
-â”‚  â””â”€ storage/     # local asset storage abstraction
-â”œâ”€ drizzle/        # generated SQL migrations
-â”œâ”€ docker-compose.yml
-â””â”€ .env.example
+├── apps/
+│   ├── web/         # Next.js web application
+│   └── worker/      # Background worker for polling and model sync
+├── packages/
+│   ├── database/    # Drizzle schema and query layer
+│   ├── openrouter/  # OpenRouter client and type definitions
+│   ├── queue/       # Redis-backed queue utilities
+│   ├── shared/      # Shared runtime environment and utilities
+│   └── storage/     # Local asset storage abstraction
+├── drizzle/         # Generated SQL migrations
+├── docker-compose.yml
+└── .env.example
 ```
 
 ## Prerequisites
 
-- `Docker Desktop`
-- `Node.js 24+`
-- `npm`
-- an `OpenRouter` API key
+- Docker Desktop
+- Node.js 24+
+- npm
+- OpenRouter API key ([get one free](https://openrouter.ai/))
 
-## Environment
+## Environment Setup
 
-Copy the example file and fill in the values you need:
+### 1. Copy the example environment file
 
 ```powershell
 Copy-Item .env.example .env
 ```
 
-Important variables:
+### 2. Configure required variables
+
+Edit `.env` and set your OpenRouter API key:
 
 ```env
-OPENROUTER_API_KEY=
-OPENROUTER_BASE_URL=https://openrouter.ai/api/v1
-OPENROUTER_HTTP_REFERER=http://localhost:3000
-OPENROUTER_TITLE=OpenVideoUI
-
-DATABASE_URL=postgresql://studio:studio@postgres:5432/studio
-REDIS_URL=redis://redis:6379
-
-ASSET_STORAGE_DIR=.data/assets
-NEXT_PUBLIC_APP_URL=http://localhost:3000
-SESSION_COOKIE_NAME=openvideoui_session
+OPENROUTER_API_KEY=your_api_key_here
 ```
+
+### 3. Full environment reference
+
+| Variable | Description | Default |
+|----------|-------------|---------|
+| `OPENROUTER_API_KEY` | Your OpenRouter API key | *(required)* |
+| `OPENROUTER_BASE_URL` | OpenRouter API endpoint | `https://openrouter.ai/api/v1` |
+| `OPENROUTER_HTTP_REFERER` | Referer header for API requests | `http://localhost:3000` |
+| `OPENROUTER_TITLE` | App name for API requests | `OpenVideoUI` |
+| `DATABASE_URL` | PostgreSQL connection string | `postgresql://studio:studio@postgres:5432/studio` |
+| `REDIS_URL` | Redis connection string | `redis://redis:6379` |
+| `ASSET_STORAGE_DIR` | Local asset storage directory | `.data/assets` |
+| `NEXT_PUBLIC_APP_URL` | Public application URL | `http://localhost:3000` |
+| `SESSION_COOKIE_NAME` | Session cookie name | `openvideoui_session` |
 
 ## Quick Start
 
@@ -99,7 +107,7 @@ SESSION_COOKIE_NAME=openvideoui_session
 npm install
 ```
 
-### 2. Start infrastructure
+### 2. Start infrastructure services
 
 ```powershell
 docker compose up -d postgres redis
@@ -117,49 +125,33 @@ npm run db:migrate
 npm run db:seed
 ```
 
-### 5. Start the app and worker
+### 5. Start the application
 
 ```powershell
 docker compose up -d --build web worker
 ```
 
-Open the app at:
+### 6. Access the application
 
-```text
-http://localhost:3000
-```
+Open your browser to: **http://localhost:3000**
 
 ## Local Development
 
-Run the web app outside Docker:
+### Running with Hot Reload
+
+Run the web application:
 
 ```powershell
 npm run dev:web
 ```
 
-Run the worker outside Docker:
+Run the background worker:
 
 ```powershell
 npm run dev:worker
 ```
 
-Sync model capabilities manually:
-
-```powershell
-npm run sync:models
-```
-
-Build the web app:
-
-```powershell
-npm run build:web
-```
-
-Run type checks:
-
-```powershell
-npm run typecheck
-```
+### Database Operations
 
 Generate migrations after schema changes:
 
@@ -167,59 +159,92 @@ Generate migrations after schema changes:
 npm run db:generate
 ```
 
-## How the App Works
+Apply pending migrations:
 
-### Web app
+```powershell
+npm run db:migrate
+```
 
-The Next.js app handles:
+Seed the database:
 
-- onboarding and local session bootstrap
-- project and chat UI
-- settings, backgrounds, and theme palettes
-- text, image, and video submission routes
-- serving stored local assets
+```powershell
+npm run db:seed
+```
 
-### Worker
+### Model Synchronization
 
-The worker is responsible for:
+Manually sync model capabilities from OpenRouter:
 
-- syncing model capabilities from OpenRouter
-- polling async video jobs
-- updating render status and lifecycle events
-- coordinating scheduled work through Redis
+```powershell
+npm run sync:models
+```
 
-### Persistence
+### Build and Verification
 
-Postgres stores:
+Build the web application:
 
-- users and sessions
-- projects
-- text chats
-- renders
-- render input assets
-- render output assets
-- render events
-- model capability snapshots
+```powershell
+npm run build:web
+```
 
-Local asset storage stores:
+Run type checks across all workspaces:
 
-- uploaded background videos
-- reference images
-- generated images
-- downloaded generated videos
+```powershell
+npm run typecheck
+```
+
+## Architecture
+
+### Web Application
+
+The Next.js web application handles:
+
+- Onboarding and local session bootstrap
+- Project and chat management UI
+- Settings, backgrounds, and theme customization
+- Text, image, and video submission API routes
+- Serving stored local assets
+
+### Background Worker
+
+The worker process is responsible for:
+
+- Syncing model capabilities from OpenRouter
+- Polling async video generation jobs
+- Updating render status and lifecycle events
+- Coordinating scheduled work through Redis
+
+### Data Persistence
+
+**PostgreSQL** stores:
+
+- Users and sessions
+- Projects and project metadata
+- Text chat threads and messages
+- Renders and job state
+- Render input/output asset references
+- Render lifecycle events
+- Model capability snapshots
+
+**Local File Storage** stores:
+
+- Uploaded background videos
+- Reference images
+- Generated images
+- Downloaded generated videos
 
 ## Usage Notes
 
-- The app is local-first. Remote-access auth is not the primary path.
-- Image-to-video is capability-gated and only available for models that support it.
-- Text chats are persisted separately from image/video renders.
-- Generated assets are served through the app rather than depending on raw provider URLs.
+- **Local-first design**: The application is designed to run locally. Remote authentication is not the primary path.
+- **Capability-gated features**: Image-to-video generation is only available for models that support it.
+- **Separated concerns**: Text chats are persisted separately from image/video renders.
+- **Asset serving**: Generated assets are served through the application rather than depending on raw provider URLs.
 
 ## Troubleshooting
 
-### Docker builds but a package is still reported as missing
+### Docker reports missing packages after build
 
-If Docker is using stale workspace dependency volumes, reset only the app dependency volumes:
+If Docker is using stale workspace dependency volumes, reset only the affected service volumes:
 
 ```powershell
 docker compose rm -sf web worker
@@ -227,9 +252,9 @@ docker volume rm openvideoui_web_node_modules openvideoui_worker_node_modules
 docker compose up -d --build web worker
 ```
 
-### Database commands fail from local PowerShell
+### Database commands fail from local shell
 
-The default `DATABASE_URL` in `.env` targets the Docker hostname `postgres`, which is correct for containers. If you run DB commands directly from the host shell, use a host-accessible connection string such as:
+The default `DATABASE_URL` in `.env` targets the Docker hostname `postgres`, which is correct for containers. If running database commands directly from the host shell, use a host-accessible connection string:
 
 ```env
 DATABASE_URL=postgresql://studio:studio@localhost:5432/studio
@@ -237,17 +262,40 @@ DATABASE_URL=postgresql://studio:studio@localhost:5432/studio
 
 ### Next.js build or typecheck intermittently fails on Windows
 
-There is an existing intermittent Windows `.next` cache/rename race in local runs. Re-running the command usually succeeds.
+There is an occasional Windows `.next` cache rename race in local development. Re-running the command usually succeeds.
 
-## Development Notes
+### Worker not processing jobs
 
-- This repo currently has no dedicated test suite.
-- The main verification commands are:
-  - `npm run build:web`
-  - `npm run typecheck`
-  - `npm run db:migrate`
-- SQL migrations are generated into [`drizzle/`](./drizzle).
+Verify Redis is running and accessible:
+
+```powershell
+docker compose ps
+docker compose logs worker
+```
+
+Check that the Redis connection is successful in the worker logs.
+
+### Assets not loading
+
+Ensure the `ASSET_STORAGE_DIR` exists and has correct permissions:
+
+```powershell
+New-Item -ItemType Directory -Force -Path .data/assets
+```
+
+## Development Commands Reference
+
+| Command | Purpose |
+|---------|---------|
+| `npm run dev:web` | Start web app with hot reload |
+| `npm run dev:worker` | Start worker with hot reload |
+| `npm run sync:models` | Sync model capabilities |
+| `npm run build:web` | Production build |
+| `npm run typecheck` | Type check all packages |
+| `npm run db:generate` | Generate new migrations |
+| `npm run db:migrate` | Apply migrations |
+| `npm run db:seed` | Seed database |
 
 ## License
 
-No license file is currently present in this repository.
+This project is for personal and educational use. No license file is currently included.
