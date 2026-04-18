@@ -1,0 +1,22 @@
+{
+  "name": "@creative-studio/worker",
+  "private": true,
+  "scripts": {
+    "dev": "tsx watch src/index.ts",
+    "start": "tsx src/index.ts",
+    "sync:models": "tsx src/index.ts --sync-models --exit",
+    "typecheck": "tsc --project tsconfig.json --pretty false"
+  },
+  "dependencies": {
+    "@creative-studio/database": "*",
+    "@creative-studio/openrouter": "*",
+    "@creative-studio/queue": "*",
+    "@creative-studio/shared": "*",
+    "@creative-studio/storage": "*"
+  },
+  "devDependencies": {
+    "@types/node": "^24.0.0",
+    "tsx": "^4.19.4",
+    "typescript": "^5.8.3"
+  }
+}

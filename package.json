@@ -1,0 +1,22 @@
+{
+  "name": "creative-ai-studio",
+  "private": true,
+  "workspaces": [
+    "apps/*",
+    "packages/*"
+  ],
+  "scripts": {
+    "dev:web": "npm run dev --workspace @creative-studio/web",
+    "dev:worker": "npm run dev --workspace @creative-studio/worker",
+    "sync:models": "npm run sync:models --workspace @creative-studio/worker",
+    "build:web": "npm run build --workspace @creative-studio/web",
+    "db:generate": "drizzle-kit generate",
+    "db:migrate": "drizzle-kit migrate",
+    "db:seed": "tsx packages/database/src/seed.ts",
+    "typecheck": "npm run typecheck --workspaces --if-present"
+  },
+  "devDependencies": {
+    "drizzle-kit": "^0.31.4",
+    "typescript": "^5.8.3"
+  }
+}

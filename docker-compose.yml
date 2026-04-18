@@ -1,0 +1,67 @@
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: creative-studio-postgres
+    environment:
+      POSTGRES_DB: studio
+      POSTGRES_USER: studio
+      POSTGRES_PASSWORD: studio
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
+  redis:
+    image: redis:7-alpine
+    container_name: creative-studio-redis
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+
+  web:
+    build:
+      context: .
+      dockerfile: apps/web/Dockerfile
+    container_name: creative-studio-web
+    env_file:
+      - .env
+    environment:
+      DATABASE_URL: ${DATABASE_URL:-postgresql://studio:studio@postgres:5432/studio}
+      REDIS_URL: ${REDIS_URL:-redis://redis:6379}
+      NEXT_PUBLIC_APP_URL: ${NEXT_PUBLIC_APP_URL:-http://localhost:3000}
+    ports:
+      - "3000:3000"
+    depends_on:
+      - postgres
+      - redis
+    volumes:
+      - .:/app
+      - web_node_modules:/app/node_modules
+      - web_next:/app/apps/web/.next
+    command: npm run dev --workspace @creative-studio/web
+
+  worker:
+    build:
+      context: .
+      dockerfile: apps/worker/Dockerfile
+    container_name: creative-studio-worker
+    env_file:
+      - .env
+    environment:
+      DATABASE_URL: ${DATABASE_URL:-postgresql://studio:studio@postgres:5432/studio}
+      REDIS_URL: ${REDIS_URL:-redis://redis:6379}
+    depends_on:
+      - postgres
+      - redis
+    volumes:
+      - .:/app
+      - worker_node_modules:/app/node_modules
+    command: npm run dev --workspace @creative-studio/worker
+
+volumes:
+  postgres_data:
+  redis_data:
+  web_node_modules:
+  worker_node_modules:
+  web_next:

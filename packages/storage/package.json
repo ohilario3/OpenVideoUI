@@ -1,0 +1,17 @@
+{
+  "name": "@creative-studio/storage",
+  "private": true,
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "scripts": {
+    "typecheck": "tsc --project tsconfig.json --pretty false"
+  },
+  "dependencies": {
+    "@creative-studio/shared": "*"
+  },
+  "devDependencies": {
+    "@types/node": "^24.0.0",
+    "typescript": "^5.8.3"
+  }
+}

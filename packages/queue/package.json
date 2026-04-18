@@ -1,0 +1,18 @@
+{
+  "name": "@creative-studio/queue",
+  "private": true,
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "scripts": {
+    "typecheck": "tsc --project tsconfig.json --pretty false"
+  },
+  "dependencies": {
+    "@creative-studio/shared": "*",
+    "redis": "^5.9.0"
+  },
+  "devDependencies": {
+    "@types/node": "^24.0.0",
+    "typescript": "^5.8.3"
+  }
+}

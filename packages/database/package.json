@@ -1,0 +1,21 @@
+{
+  "name": "@creative-studio/database",
+  "private": true,
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "scripts": {
+    "typecheck": "tsc --project tsconfig.json --pretty false"
+  },
+  "dependencies": {
+    "@creative-studio/openrouter": "*",
+    "@creative-studio/shared": "*",
+    "drizzle-orm": "^0.44.2",
+    "pg": "^8.16.3"
+  },
+  "devDependencies": {
+    "@types/node": "^24.0.0",
+    "@types/pg": "^8.15.5",
+    "typescript": "^5.8.3"
+  }
+}

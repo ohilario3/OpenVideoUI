@@ -1,0 +1,29 @@
+{
+  "name": "@creative-studio/web",
+  "private": true,
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "typecheck": "next build"
+  },
+  "dependencies": {
+    "@creative-studio/database": "*",
+    "@creative-studio/openrouter": "*",
+    "@creative-studio/queue": "*",
+    "@creative-studio/shared": "*",
+    "@creative-studio/storage": "*",
+    "lucide-react": "^1.8.0",
+    "next": "^15.3.0",
+    "react": "^19.1.0",
+    "react-dom": "^19.1.0",
+    "react-markdown": "^10.1.0",
+    "remark-gfm": "^4.0.1"
+  },
+  "devDependencies": {
+    "@types/node": "^24.0.0",
+    "@types/react": "^19.1.2",
+    "@types/react-dom": "^19.1.2",
+    "typescript": "^5.8.3"
+  }
+}
