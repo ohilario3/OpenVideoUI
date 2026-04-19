@@ -1,0 +1,5 @@
+blank_issues_enabled: true
+contact_links:
+  - name: Security issue
+    url: https://github.com/Kxrbx/OpenVideoUI/security/policy
+    about: Please report security issues through the security policy process.
