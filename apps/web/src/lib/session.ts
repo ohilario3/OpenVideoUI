@@ -30,7 +30,6 @@ export async function getSession() {
   const user = await getUserBySessionToken(token);
 
   if (!user) {
-    store.delete(getCookieName());
     return null;
   }
 

@@ -19,7 +19,8 @@ export function readRuntimeEnv(source: NodeJS.ProcessEnv = process.env): Runtime
     assetStorageDir: source.ASSET_STORAGE_DIR || ".data/assets",
     openRouterApiKey: source.OPENROUTER_API_KEY || "",
     openRouterBaseUrl: source.OPENROUTER_BASE_URL || "https://openrouter.ai/api/v1",
-    openRouterHttpReferer: source.OPENROUTER_HTTP_REFERER || "",
+    openRouterHttpReferer:
+      source.OPENROUTER_HTTP_REFERER || "https://github.com/Kxrbx/OpenVideoUI",
     openRouterTitle: source.OPENROUTER_TITLE || "OpenVideoUI"
   };
 }

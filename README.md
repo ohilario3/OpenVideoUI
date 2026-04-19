@@ -91,7 +91,7 @@ OPENROUTER_API_KEY=your_api_key_here
 |----------|-------------|---------|
 | `OPENROUTER_API_KEY` | Your OpenRouter API key | *(required)* |
 | `OPENROUTER_BASE_URL` | OpenRouter API endpoint | `https://openrouter.ai/api/v1` |
-| `OPENROUTER_HTTP_REFERER` | Referer header for API requests | `http://localhost:3000` |
+| `OPENROUTER_HTTP_REFERER` | Referer header used by OpenRouter app attribution | `https://github.com/Kxrbx/OpenVideoUI` |
 | `OPENROUTER_TITLE` | App name for API requests | `OpenVideoUI` |
 | `DATABASE_URL` | PostgreSQL connection string | `postgresql://studio:studio@postgres:5432/studio` |
 | `REDIS_URL` | Redis connection string | `redis://redis:6379` |

@@ -327,6 +327,10 @@ function getSessionGreeting() {
   return "Good evening";
 }
 
+function normalizeBackgroundUrlInput(value: unknown) {
+  return typeof value === "string" ? value : "";
+}
+
 function pickInitialString(options: string[] | undefined, current: string) {
   if (!options?.length) {
     return "";
@@ -489,7 +493,9 @@ export function StudioApp({
   const [loadingLineIndex, setLoadingLineIndex] = useState(0);
   const [sessionGreeting, setSessionGreeting] = useState("");
   const [backgroundSourceMode, setBackgroundSourceMode] = useState<"link" | "file">("link");
-  const [backgroundUrlInput, setBackgroundUrlInput] = useState(DEFAULT_BACKGROUND_PAGE_URL);
+  const [backgroundUrlInput, setBackgroundUrlInput] = useState(
+    normalizeBackgroundUrlInput(DEFAULT_BACKGROUND_PAGE_URL)
+  );
   const [backgroundSource, setBackgroundSource] = useState<BackgroundSource>(() =>
     getDefaultBackgroundSource()
   );
@@ -585,12 +591,12 @@ export function StudioApp({
         setSelectedModelsByMode(parsed.selectedModels);
       }
 
-      if (parsed.backgroundUrl) {
+      if (typeof parsed.backgroundUrl === "string" && parsed.backgroundUrl.trim().length > 0) {
         const nextBackgroundSource = resolveBackgroundUrl(parsed.backgroundUrl);
 
         if (nextBackgroundSource) {
           setBackgroundSource(nextBackgroundSource);
-          setBackgroundUrlInput(parsed.backgroundUrl);
+          setBackgroundUrlInput(normalizeBackgroundUrlInput(parsed.backgroundUrl));
         }
       }
 
@@ -1113,6 +1119,7 @@ export function StudioApp({
         src: payload.data.publicUrl,
         label: payload.data.fileName
       });
+      setBackgroundUrlInput(normalizeBackgroundUrlInput(payload.data.publicUrl));
       writeLocalSettings((current) => ({
         ...current,
         backgroundUrl: payload.data!.publicUrl
@@ -2325,7 +2332,7 @@ export function StudioApp({
                       className="settings-input"
                       onChange={(event) => setBackgroundUrlInput(event.target.value)}
                       placeholder="https://streamable.com/... or https://cdn.example.com/video.mp4"
-                      value={backgroundUrlInput}
+                      value={normalizeBackgroundUrlInput(backgroundUrlInput)}
                     />
                     <div className="settings-note">
                       Streamable links are converted to a muted looping embed. Direct video
@@ -2509,9 +2516,6 @@ export function StudioApp({
           {surfaceState === "idle" && !hasTextConversation ? (
             <div className="idle-copy">
               <div className="idle-title">{idleTitle}</div>
-              <div className="idle-subtle">
-                The room stays ambient until you bring the first output into view.
-              </div>
             </div>
           ) : null}
 
