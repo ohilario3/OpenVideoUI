@@ -159,6 +159,17 @@ type ChatSession = {
   updatedAt: string;
 };
 
+type StudioToast = {
+  id: number;
+  title: string;
+  detail?: string;
+};
+
+type PendingChatDeletion = {
+  id: string;
+  title: string;
+};
+
 type AccentPaletteId = "jade" | "dusty-teal" | "muted-sage" | "smoky-lavender" | "warm-sand";
 
 const LOCAL_STORAGE_KEY = "openvideoui.local-settings";
@@ -742,6 +753,12 @@ export function StudioApp({
   recentRenders: RenderRecord[];
   sessionName: string;
 }) {
+  const initialCompletedRender =
+    recentRenders.find((render) => render.status === "completed" && render.outputUrls.length > 0) ||
+    null;
+  const initialResult = initialCompletedRender
+    ? buildCurrentResultFromRender(initialCompletedRender)
+    : null;
   const [projectList, setProjectList] = useState(projects);
   const [renderHistory, setRenderHistory] = useState(recentRenders);
   const [selectedProjectId, setSelectedProjectId] = useState(projects[0]?.id || "");
@@ -754,7 +771,7 @@ export function StudioApp({
   >({});
   const [prompt, setPrompt] = useState("");
   const [surfaceState, setSurfaceState] = useState<SurfaceState>(
-    recentRenders[0]?.status === "completed" ? "result" : "idle"
+    initialResult ? "result" : "idle"
   );
   const [apiKey, setApiKey] = useState("");
   const [statusLabel, setStatusLabel] = useState("Ready");
@@ -783,19 +800,17 @@ export function StudioApp({
   const [backgroundSource, setBackgroundSource] = useState<BackgroundSource>(() =>
     getDefaultBackgroundSource()
   );
-  const [activeRender, setActiveRender] = useState<RenderRecord | null>(recentRenders[0] || null);
+  const [activeRender, setActiveRender] = useState<RenderRecord | null>(
+    initialCompletedRender || recentRenders[0] || null
+  );
   const [chatSessions, setChatSessions] = useState(initialChatSessions);
   const [selectedChatId, setSelectedChatId] = useState("");
   const [isTextResponding, setIsTextResponding] = useState(false);
   const [isModelMenuOpen, setIsModelMenuOpen] = useState(false);
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
-  const [currentResult, setCurrentResult] = useState<CurrentResult | null>(() => {
-    const latest = recentRenders.find(
-      (render) => render.status === "completed" && render.outputUrls.length > 0
-    );
-
-    return latest ? buildCurrentResultFromRender(latest) : null;
-  });
+  const [toast, setToast] = useState<StudioToast | null>(null);
+  const [pendingChatDeletion, setPendingChatDeletion] = useState<PendingChatDeletion | null>(null);
+  const [currentResult, setCurrentResult] = useState<CurrentResult | null>(initialResult);
   const [error, setError] = useState("");
   const localFileUrlRef = useRef<string | null>(null);
   const pollTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -817,6 +832,17 @@ export function StudioApp({
   }, [recentRenders]);
 
   useEffect(() => {
+    if (mode === "text") {
+      return;
+    }
+
+    if (surfaceState === "result" && !currentResult) {
+      setSurfaceState("idle");
+      setStatusLabel("Ready");
+    }
+  }, [currentResult, mode, surfaceState]);
+
+  useEffect(() => {
     setChatSessions(initialChatSessions);
   }, [initialChatSessions]);
 
@@ -829,6 +855,18 @@ export function StudioApp({
   useEffect(() => {
     setSessionGreeting(getSessionGreeting());
   }, []);
+
+  useEffect(() => {
+    if (!toast) {
+      return;
+    }
+
+    const timerId = window.setTimeout(() => {
+      setToast((current) => (current?.id === toast.id ? null : current));
+    }, 2600);
+
+    return () => window.clearTimeout(timerId);
+  }, [toast]);
 
   useEffect(() => {
     if (surfaceState !== "generating") {
@@ -931,6 +969,10 @@ export function StudioApp({
             setCurrentResult(null);
             setSurfaceState("failed");
             setStatusLabel("Generation failed");
+          } else if (persistedRender.status === "completed") {
+            setCurrentResult(null);
+            setSurfaceState("idle");
+            setStatusLabel("Ready");
           } else {
             setCurrentResult(null);
             setSurfaceState("generating");
@@ -1207,6 +1249,14 @@ export function StudioApp({
     }
   }
 
+  function showToast(title: string, detail?: string) {
+    setToast({
+      id: Date.now(),
+      title,
+      detail
+    });
+  }
+
   function buildSnapshotFromComposer(): GenerationSnapshot | null {
     if (!selectedProject) {
       return null;
@@ -1343,6 +1393,7 @@ export function StudioApp({
       ...current,
       backgroundUrl: backgroundUrlInput.trim()
     }));
+    showToast("Backdrop updated", "The room picked up your new ambient video.");
   }
 
   function resetBackgroundSource() {
@@ -1357,6 +1408,7 @@ export function StudioApp({
       return next;
     });
     setSettingsNotice("Default backdrop restored.");
+    showToast("Backdrop restored", "The default atmosphere is back in place.");
   }
 
   function handleBackgroundFileChange(event: ChangeEvent<HTMLInputElement>) {
@@ -1417,6 +1469,7 @@ export function StudioApp({
         backgroundUrl: payload.data!.publicUrl
       }));
       setSettingsNotice("Local backdrop saved on this machine.");
+      showToast("Backdrop saved locally", "This ambient video will stay with the app.");
       setIsSavingSettings(false);
     };
 
@@ -1470,6 +1523,10 @@ export function StudioApp({
         payload.videoModelsSynced ?? 0
       } video models.`
     );
+    showToast(
+      "OpenRouter connected",
+      `${payload.imageModelsSynced ?? 0} image models and ${payload.videoModelsSynced ?? 0} video models are ready.`
+    );
     setIsSavingSettings(false);
   }
 
@@ -1512,6 +1569,7 @@ export function StudioApp({
     setDisplayName(payload.data.name);
     setSettingsDisplayName(payload.data.name);
     setSettingsNotice("Name updated.");
+    showToast("Name updated", `${payload.data.name} now signs the studio.`);
     setIsSavingSettings(false);
   }
 
@@ -1687,6 +1745,56 @@ export function StudioApp({
     setActiveRender(null);
     setSurfaceState("idle");
     setError("");
+    showToast("Fresh chat opened", "A new thread is ready to take shape.");
+  }
+
+  function requestDeleteChat(chatId: string, title: string) {
+    setPendingChatDeletion({
+      id: chatId,
+      title
+    });
+  }
+
+  function closeDeleteChatModal() {
+    setPendingChatDeletion(null);
+  }
+
+  async function handleDeleteChat(chatId: string) {
+    const response = await fetch(`/api/text-chats/${chatId}`, {
+      method: "DELETE"
+    });
+
+    const payload = (await response.json().catch(() => ({}))) as {
+      error?: string;
+    };
+
+    if (!response.ok) {
+      setError(payload.error || "Unable to delete the chat.");
+      return;
+    }
+
+    const nextChats = chatSessions.filter((chat) => chat.id !== chatId);
+    setChatSessions(nextChats);
+
+    if (selectedChatId === chatId) {
+      const fallbackChat =
+        nextChats.find((chat) => chat.projectId === selectedProjectId) || nextChats[0] || null;
+
+      if (fallbackChat) {
+        handleSelectChat(fallbackChat.id);
+      } else {
+        setSelectedChatId("");
+        setPrompt("");
+        setCurrentResult(null);
+        setActiveRender(null);
+        setSurfaceState("idle");
+        setStatusLabel("Ready");
+        setError("");
+      }
+    }
+
+    closeDeleteChatModal();
+    showToast("Chat removed", "The thread slipped out of the sidebar.");
   }
 
   function handleGoHome() {
@@ -1862,6 +1970,7 @@ export function StudioApp({
     setNewProjectDescription("");
     setError("");
     setStatusLabel("Project ready");
+    showToast("Project created", `${payload.data.title} is ready for new renders.`);
   }
 
   function buildVideoGuidancePayload() {
@@ -2191,6 +2300,7 @@ export function StudioApp({
     document.body.append(link);
     link.click();
     link.remove();
+    showToast("Download started", "Your result is being saved locally.");
   }
 
   function handleDownloadActiveRender() {
@@ -2211,6 +2321,7 @@ export function StudioApp({
     document.body.append(link);
     link.click();
     link.remove();
+    showToast("Download started", "The media is being saved locally.");
   }
 
   function handleRecoverActiveRender() {
@@ -2423,23 +2534,40 @@ export function StudioApp({
             {mode === "text" ? (
               visibleChatSessions.length > 0 ? (
                 visibleChatSessions.map((chat) => (
-                  <button
-                    aria-pressed={chat.id === selectedChatId}
+                  <div
                     className={
                       chat.id === selectedChatId
-                        ? "studio-history-item active"
-                        : "studio-history-item"
+                        ? "studio-history-row active"
+                        : "studio-history-row"
                     }
                     key={chat.id}
-                    onClick={() => handleSelectChat(chat.id)}
-                    type="button"
                   >
-                    <div className="studio-history-title">{chat.title}</div>
-                    <div className="studio-history-meta">
-                      <span>{chat.modelId}</span>
-                      <span>{chat.messages.length} msgs</span>
-                    </div>
-                  </button>
+                    <button
+                      aria-pressed={chat.id === selectedChatId}
+                      className={
+                        chat.id === selectedChatId
+                          ? "studio-history-item active"
+                          : "studio-history-item"
+                      }
+                      onClick={() => handleSelectChat(chat.id)}
+                      type="button"
+                    >
+                      <div className="studio-history-title">{chat.title}</div>
+                      <div className="studio-history-meta">
+                        <span>{chat.modelId}</span>
+                        <span>{chat.messages.length} msgs</span>
+                      </div>
+                    </button>
+                    <button
+                      aria-label={`Delete ${chat.title}`}
+                      className="studio-history-delete"
+                      onClick={() => requestDeleteChat(chat.id, chat.title)}
+                      title="Delete chat"
+                      type="button"
+                    >
+                      <X aria-hidden="true" size={14} strokeWidth={2.1} />
+                    </button>
+                  </div>
                 ))
               ) : (
                 <div className="studio-empty-note">
@@ -2516,6 +2644,51 @@ export function StudioApp({
         {surfaceState === "idle" ? (
           <div className="idle-session-banner">
             {sessionGreeting ? `${sessionGreeting}, ${displayName}` : displayName}
+          </div>
+        ) : null}
+
+        {toast ? (
+          <div aria-live="polite" className="studio-toast" role="status">
+            <div className="studio-toast-title">{toast.title}</div>
+            {toast.detail ? <div className="studio-toast-detail">{toast.detail}</div> : null}
+          </div>
+        ) : null}
+
+        {pendingChatDeletion ? (
+          <div
+            className="confirm-backdrop"
+            onClick={closeDeleteChatModal}
+            role="presentation"
+          >
+            <section
+              aria-labelledby="delete-chat-title"
+              aria-modal="true"
+              className="confirm-modal"
+              onClick={(event) => event.stopPropagation()}
+              role="alertdialog"
+            >
+              <div className="confirm-kicker">Remove chat</div>
+              <h2 id="delete-chat-title">Delete this thread?</h2>
+              <div className="confirm-copy">
+                <span>{pendingChatDeletion.title}</span> will be removed from this project.
+              </div>
+              <div className="confirm-actions">
+                <button
+                  className="button-secondary"
+                  onClick={closeDeleteChatModal}
+                  type="button"
+                >
+                  Keep it
+                </button>
+                <button
+                  className="button"
+                  onClick={() => void handleDeleteChat(pendingChatDeletion.id)}
+                  type="button"
+                >
+                  Delete chat
+                </button>
+              </div>
+            </section>
           </div>
         ) : null}
 

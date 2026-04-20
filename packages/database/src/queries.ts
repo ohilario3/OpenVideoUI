@@ -381,6 +381,29 @@ export async function updateTextChatForUser(input: {
   };
 }
 
+export async function deleteTextChatForUser(input: {
+  ownerId: string;
+  chatId: string;
+}) {
+  const db = getDatabaseClient();
+
+  const existingChat = await db
+    .select({
+      id: textChats.id
+    })
+    .from(textChats)
+    .innerJoin(projects, eq(projects.id, textChats.projectId))
+    .where(and(eq(textChats.id, input.chatId), eq(projects.ownerId, input.ownerId)))
+    .limit(1);
+
+  if (!existingChat[0]) {
+    return false;
+  }
+
+  await db.delete(textChats).where(eq(textChats.id, input.chatId));
+  return true;
+}
+
 export async function getModelCapabilityById(modelId: string) {
   const db = getDatabaseClient();
 

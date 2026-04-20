@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { updateTextChatForUser } from "@openvideoui/database";
+import { deleteTextChatForUser, updateTextChatForUser } from "@openvideoui/database";
 import { requireSession } from "@/lib/api-auth";
 
 type RouteContext = {
@@ -48,4 +48,24 @@ export async function PATCH(request: NextRequest, context: RouteContext) {
   }
 
   return NextResponse.json({ data: chat });
+}
+
+export async function DELETE(_request: NextRequest, context: RouteContext) {
+  const { session, unauthorized } = await requireSession();
+
+  if (!session) {
+    return unauthorized;
+  }
+
+  const { chatId } = await context.params;
+  const deleted = await deleteTextChatForUser({
+    ownerId: session.id,
+    chatId
+  });
+
+  if (!deleted) {
+    return NextResponse.json({ error: "Chat not found." }, { status: 404 });
+  }
+
+  return NextResponse.json({ success: true });
 }

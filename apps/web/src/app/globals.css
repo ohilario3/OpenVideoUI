@@ -243,6 +243,43 @@ select:focus-visible {
   padding: 12px 14px;
 }
 
+.setup-field select,
+.composer-select,
+.settings-input:is(select) {
+  appearance: none;
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  padding-right: 42px;
+  background-image:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.02), rgba(255, 255, 255, 0)),
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='14' viewBox='0 0 14 14' fill='none'%3E%3Cpath d='M3.25 5.25L7 9L10.75 5.25' stroke='rgba(245,245,245,0.68)' stroke-width='1.4' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+  background-repeat: no-repeat, no-repeat;
+  background-position: 0 0, right 14px center;
+  background-size: auto, 14px 14px;
+  cursor: pointer;
+}
+
+.setup-field select:hover,
+.composer-select:hover,
+.settings-input:is(select):hover {
+  border-color: rgba(255, 255, 255, 0.2);
+  background-color: rgba(12, 12, 12, 0.84);
+}
+
+.setup-field select:focus,
+.composer-select:focus,
+.settings-input:is(select):focus {
+  border-color: rgba(var(--accent-rgb), 0.3);
+  background-color: rgba(14, 14, 14, 0.9);
+}
+
+.setup-field select option,
+.composer-select option,
+.settings-input:is(select) option {
+  background: #111;
+  color: var(--text);
+}
+
 .setup-mode-switch,
 .composer-modes {
   display: flex;
@@ -621,12 +658,60 @@ select:focus-visible {
   color: inherit;
   cursor: pointer;
   text-align: left;
-  padding: 11px 12px;
+  padding: 11px 44px 11px 12px;
   overflow: hidden;
   box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.025);
   transition-property: color, transform, opacity, background-color, border-color, box-shadow;
   transition-duration: 160ms;
   transition-timing-function: var(--surface-ease);
+}
+
+.studio-history-row {
+  position: relative;
+  min-width: 0;
+}
+
+.studio-history-delete {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  position: absolute;
+  top: 50%;
+  right: 10px;
+  z-index: 2;
+  width: 36px;
+  height: 36px;
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.02);
+  color: var(--text-muted);
+  cursor: pointer;
+  box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.025);
+  opacity: 0;
+  pointer-events: none;
+  transform: translateY(-50%) translateX(6px) scale(0.94);
+  transition-property: background-color, border-color, color, transform, box-shadow, opacity;
+  transition-duration: 160ms;
+  transition-timing-function: var(--surface-ease);
+}
+
+.studio-history-row:hover .studio-history-delete,
+.studio-history-row:focus-within .studio-history-delete {
+  opacity: 1;
+  pointer-events: auto;
+  transform: translateY(-50%) translateX(0) scale(1);
+}
+
+.studio-history-delete:hover {
+  color: var(--danger);
+  border-color: rgba(255, 107, 157, 0.2);
+  background: rgba(255, 107, 157, 0.08);
+  box-shadow: 0 10px 22px rgba(0, 0, 0, 0.16);
+  transform: translateY(-1px);
+}
+
+.studio-history-delete:active {
+  transform: scale(0.96);
 }
 
 .studio-history-item:hover,
@@ -734,6 +819,103 @@ select:focus-visible {
     0 0 0 1px rgba(255, 255, 255, 0.03),
     0 12px 30px rgba(0, 0, 0, 0.16);
   pointer-events: none;
+}
+
+.studio-toast {
+  position: absolute;
+  z-index: 5;
+  top: 26px;
+  right: 24px;
+  display: grid;
+  gap: 4px;
+  min-width: 240px;
+  max-width: min(360px, calc(100vw - 40px));
+  padding: 12px 14px;
+  border: 1px solid rgba(var(--accent-rgb), 0.18);
+  border-radius: 16px;
+  background:
+    linear-gradient(180deg, rgba(var(--accent-rgb), 0.12), rgba(var(--accent-rgb), 0.06)),
+    rgba(14, 14, 14, 0.9);
+  backdrop-filter: blur(16px);
+  box-shadow:
+    0 0 0 1px rgba(255, 255, 255, 0.04),
+    0 18px 40px rgba(0, 0, 0, 0.22);
+  animation: surface-enter 260ms var(--surface-ease) both;
+  pointer-events: none;
+}
+
+.studio-toast-title {
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+}
+
+.studio-toast-detail {
+  color: var(--text-muted);
+  font-size: 12px;
+  line-height: 1.45;
+  text-wrap: pretty;
+}
+
+.confirm-backdrop {
+  position: absolute;
+  inset: 0;
+  z-index: 6;
+  display: grid;
+  place-items: center;
+  padding: 24px;
+  background: rgba(5, 5, 5, 0.5);
+  backdrop-filter: blur(10px);
+  animation: backdrop-fade 180ms var(--surface-ease) both;
+}
+
+.confirm-modal {
+  width: min(420px, 100%);
+  display: grid;
+  gap: 12px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 20px;
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.03), rgba(255, 255, 255, 0.012)),
+    rgba(15, 15, 15, 0.96);
+  padding: 20px;
+  box-shadow:
+    0 0 0 1px rgba(255, 255, 255, 0.04),
+    0 32px 80px rgba(0, 0, 0, 0.34);
+  animation: confirm-modal-enter 240ms var(--surface-ease) both;
+  transform-origin: center;
+}
+
+.confirm-kicker {
+  color: var(--danger);
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.confirm-modal h2 {
+  margin: 0;
+  font-size: 24px;
+  letter-spacing: -0.03em;
+  line-height: 1.15;
+}
+
+.confirm-copy {
+  color: var(--text-muted);
+  line-height: 1.6;
+  text-wrap: pretty;
+}
+
+.confirm-copy span {
+  color: var(--text);
+}
+
+.confirm-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  margin-top: 6px;
 }
 
 .studio-background {
@@ -1620,6 +1802,12 @@ select:focus-visible {
   gap: 8px;
 }
 
+.composer-field .composer-select {
+  min-height: 46px;
+  border-radius: 12px;
+  box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.035);
+}
+
 .composer-check {
   display: inline-flex;
   align-items: center;
@@ -1964,6 +2152,20 @@ select:focus-visible {
 
   to {
     opacity: 1;
+  }
+}
+
+@keyframes confirm-modal-enter {
+  from {
+    opacity: 0;
+    transform: translateY(10px) scale(0.985);
+    filter: blur(4px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+    filter: blur(0);
   }
 }
 
