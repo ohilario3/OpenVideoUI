@@ -117,8 +117,6 @@ type LocalSettings = {
   backgroundUrl?: string;
   sidebarCollapsed?: boolean;
   selectedProjectId?: string;
-  selectedChatId?: string;
-  activeRenderId?: string;
 };
 
 type BackgroundSource = {
@@ -753,12 +751,6 @@ export function StudioApp({
   recentRenders: RenderRecord[];
   sessionName: string;
 }) {
-  const initialCompletedRender =
-    recentRenders.find((render) => render.status === "completed" && render.outputUrls.length > 0) ||
-    null;
-  const initialResult = initialCompletedRender
-    ? buildCurrentResultFromRender(initialCompletedRender)
-    : null;
   const [projectList, setProjectList] = useState(projects);
   const [renderHistory, setRenderHistory] = useState(recentRenders);
   const [selectedProjectId, setSelectedProjectId] = useState(projects[0]?.id || "");
@@ -770,9 +762,7 @@ export function StudioApp({
     Partial<Record<Mode, string>>
   >({});
   const [prompt, setPrompt] = useState("");
-  const [surfaceState, setSurfaceState] = useState<SurfaceState>(
-    initialResult ? "result" : "idle"
-  );
+  const [surfaceState, setSurfaceState] = useState<SurfaceState>("idle");
   const [apiKey, setApiKey] = useState("");
   const [statusLabel, setStatusLabel] = useState("Ready");
   const [aspectRatio, setAspectRatio] = useState("");
@@ -800,9 +790,7 @@ export function StudioApp({
   const [backgroundSource, setBackgroundSource] = useState<BackgroundSource>(() =>
     getDefaultBackgroundSource()
   );
-  const [activeRender, setActiveRender] = useState<RenderRecord | null>(
-    initialCompletedRender || recentRenders[0] || null
-  );
+  const [activeRender, setActiveRender] = useState<RenderRecord | null>(null);
   const [chatSessions, setChatSessions] = useState(initialChatSessions);
   const [selectedChatId, setSelectedChatId] = useState("");
   const [isTextResponding, setIsTextResponding] = useState(false);
@@ -810,7 +798,7 @@ export function StudioApp({
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
   const [toast, setToast] = useState<StudioToast | null>(null);
   const [pendingChatDeletion, setPendingChatDeletion] = useState<PendingChatDeletion | null>(null);
-  const [currentResult, setCurrentResult] = useState<CurrentResult | null>(initialResult);
+  const [currentResult, setCurrentResult] = useState<CurrentResult | null>(null);
   const [error, setError] = useState("");
   const localFileUrlRef = useRef<string | null>(null);
   const pollTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -825,10 +813,6 @@ export function StudioApp({
 
   useEffect(() => {
     setRenderHistory(recentRenders);
-  }, [recentRenders]);
-
-  useEffect(() => {
-    setActiveRender(recentRenders[0] || null);
   }, [recentRenders]);
 
   useEffect(() => {
@@ -901,8 +885,6 @@ export function StudioApp({
 
       if (parsed.defaultMode) {
         setMode(parsed.defaultMode);
-      } else if (recentRenders[0]) {
-        setMode(inferModeFromRender(recentRenders[0]));
       }
 
       if (parsed.defaultModel) {
@@ -929,63 +911,10 @@ export function StudioApp({
       if (parsed.selectedProjectId) {
         setSelectedProjectId(parsed.selectedProjectId);
       }
-
-      const persistedChat = parsed.selectedChatId
-        ? initialChatSessions.find((chat) => chat.id === parsed.selectedChatId)
-        : null;
-
-      if (persistedChat) {
-        setSelectedChatId(persistedChat.id);
-        setSelectedProjectId(persistedChat.projectId);
-        setMode("text");
-        setSelectedModel(persistedChat.modelId);
-        setSelectedModelsByMode((current) => ({
-          ...current,
-          text: persistedChat.modelId
-        }));
-        setSurfaceState(persistedChat.messages.length > 0 ? "result" : "idle");
-      } else if (parsed.activeRenderId) {
-        const persistedRender = recentRenders.find((render) => render.id === parsed.activeRenderId);
-
-        if (persistedRender) {
-          setActiveRender(persistedRender);
-          setSelectedProjectId(persistedRender.projectId);
-          setMode(inferModeFromRender(persistedRender));
-          setSelectedModel(persistedRender.modelId);
-          setSelectedModelsByMode((current) => ({
-            ...current,
-            [inferModeFromRender(persistedRender)]: persistedRender.modelId
-          }));
-
-          const restoredResult = buildCurrentResultFromRender(persistedRender);
-
-          if (restoredResult) {
-            setCurrentResult(restoredResult);
-            setSurfaceState("result");
-            setStatusLabel(
-              persistedRender.mediaType === "image" ? "Image ready" : "Video ready"
-            );
-          } else if (persistedRender.status === "failed") {
-            setCurrentResult(null);
-            setSurfaceState("failed");
-            setStatusLabel("Generation failed");
-          } else if (persistedRender.status === "completed") {
-            setCurrentResult(null);
-            setSurfaceState("idle");
-            setStatusLabel("Ready");
-          } else {
-            setCurrentResult(null);
-            setSurfaceState("generating");
-            setStatusLabel(
-              persistedRender.status === "submitting" ? "Submitting" : "Generating video"
-            );
-          }
-        }
-      }
     } catch {
       window.localStorage.removeItem(LOCAL_STORAGE_KEY);
     }
-  }, [initialChatSessions, recentRenders]);
+  }, []);
 
   useEffect(() => {
     let cancelled = false;
@@ -1349,11 +1278,9 @@ export function StudioApp({
       ...current,
       accentPalette,
       defaultMode: mode,
-      selectedProjectId: selectedProjectId || undefined,
-      selectedChatId: selectedChatId || undefined,
-      activeRenderId: activeRender?.id || undefined
+      selectedProjectId: selectedProjectId || undefined
     }));
-  }, [accentPalette, activeRender?.id, mode, selectedChatId, selectedProjectId]);
+  }, [accentPalette, mode, selectedProjectId]);
 
   useEffect(() => {
     const palette = ACCENT_PALETTES[accentPalette];
