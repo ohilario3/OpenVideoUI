@@ -44,6 +44,15 @@ import {
   useState
 } from "react";
 
+import {
+  getRenderSelectionComposerHydration,
+  getRenderSelectionComposerPresentation,
+  getResultFocusComposerState,
+  getVariationComposerState,
+  type MediaComposerPresentation
+} from "./studio-result-focus.helpers";
+import { StudioResultFocus } from "./studio-result-focus";
+
 type Mode = "image" | "video" | "text";
 type SurfaceState = "idle" | "generating" | "result" | "failed";
 type ActiveView = "studio" | "gallery";
@@ -791,6 +800,18 @@ function getCurrentResultDisplayTitle(result: CurrentResult) {
   return ("title" in result ? result.title?.trim() : "") || result.prompt;
 }
 
+function formatWorkflowTypeLabel(workflowType: RenderRecord["workflowType"]) {
+  if (workflowType === "image-to-video") {
+    return "Use reference";
+  }
+
+  if (workflowType === "text-to-video" || workflowType === "text-to-image") {
+    return "Prompt only";
+  }
+
+  return workflowType;
+}
+
 function buildCurrentResultFromRender(render: RenderRecord): CurrentResult | null {
   if (render.status !== "completed" || render.outputUrls.length === 0) {
     return null;
@@ -978,12 +999,15 @@ export function StudioApp({
   const [toast, setToast] = useState<StudioToast | null>(null);
   const [pendingChatDeletion, setPendingChatDeletion] = useState<PendingChatDeletion | null>(null);
   const [currentResult, setCurrentResult] = useState<CurrentResult | null>(null);
+  const [mediaComposerPresentation, setMediaComposerPresentation] =
+    useState<MediaComposerPresentation>("expanded");
   const [diagnostics, setDiagnostics] = useState<DiagnosticsSnapshot | null>(null);
   const [isLoadingDiagnostics, setIsLoadingDiagnostics] = useState(false);
   const [diagnosticsError, setDiagnosticsError] = useState("");
   const [error, setError] = useState("");
   const localFileUrlRef = useRef<string | null>(null);
   const pollTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const composerInputRef = useRef<HTMLTextAreaElement | null>(null);
   const textChatViewportRef = useRef<HTMLDivElement | null>(null);
   const modelMenuRef = useRef<HTMLDivElement | null>(null);
   const presetMenuRef = useRef<HTMLDivElement | null>(null);
@@ -1553,6 +1577,90 @@ export function StudioApp({
     Boolean(selectedProject && selectedModel && prompt.trim()) &&
     (mode !== "text" || !isTextResponding);
   const activeRenderEvents = activeRender?.events ?? [];
+  const activeMediaResultRender =
+    surfaceState === "result" && currentResult && currentResult.kind !== "text" ? activeRender : null;
+  const activeMediaResultReferenceUrl = activeMediaResultRender
+    ? readReferenceDataUrl(activeMediaResultRender.providerRequest)
+    : "";
+  const activeMediaResultMetaItems = useMemo(() => {
+    if (!activeMediaResultRender) {
+      return [];
+    }
+
+    const items: Array<{ label: string; value: string }> = [
+      {
+        label: "Project",
+        value:
+          projectList.find((project) => project.id === activeMediaResultRender.projectId)?.title ||
+          activeMediaResultRender.projectTitle ||
+          "Project"
+      },
+      {
+        label: "Model",
+        value: activeMediaResultRender.modelId
+      },
+      {
+        label: "Workflow",
+        value: formatWorkflowTypeLabel(activeMediaResultRender.workflowType)
+      }
+    ];
+
+    const aspectRatioValue = readStringSetting(activeMediaResultRender.settings, "aspectRatio");
+    const durationValue = readNumberSetting(activeMediaResultRender.settings, "duration");
+    const resolutionValue = readStringSetting(activeMediaResultRender.settings, "resolution");
+    const hasAudio = readBooleanSetting(activeMediaResultRender.settings, "generateAudio");
+
+    if (aspectRatioValue) {
+      items.push({
+        label: "Aspect",
+        value: aspectRatioValue
+      });
+    }
+
+    if (durationValue !== null) {
+      items.push({
+        label: "Duration",
+        value: `${durationValue}s`
+      });
+    }
+
+    if (resolutionValue) {
+      items.push({
+        label: "Resolution",
+        value: resolutionValue
+      });
+    }
+
+    if (hasAudio) {
+      items.push({
+        label: "Audio",
+        value: "On"
+      });
+    }
+
+    if (activeMediaResultReferenceUrl) {
+      items.push({
+        label: "Reference",
+        value: "Attached"
+      });
+    }
+
+    return items;
+  }, [activeMediaResultReferenceUrl, activeMediaResultRender, projectList]);
+  const activeMediaResultProcessEvents = useMemo(() => {
+    if (!activeMediaResultRender?.events?.length) {
+      return [];
+    }
+
+    return activeMediaResultRender.events.map((event) => ({
+      id: event.id,
+      label: event.message || event.eventType,
+      meta: event.toStatus || event.providerStatus || event.eventType,
+      time: formatEventTime(event.createdAt)
+    }));
+  }, [activeMediaResultRender]);
+  const shouldShowComposer =
+    !activeMediaResultRender || mediaComposerPresentation === "expanded";
 
   useEffect(() => {
     if (mode !== "video") {
@@ -1600,6 +1708,32 @@ export function StudioApp({
       title,
       detail
     });
+  }
+
+  function focusComposerInput() {
+    window.requestAnimationFrame(() => {
+      composerInputRef.current?.focus();
+      composerInputRef.current?.scrollIntoView({
+        block: "nearest",
+        behavior: "smooth"
+      });
+    });
+  }
+
+  function collapseMediaComposerForResult() {
+    const nextState = getResultFocusComposerState();
+    setMediaComposerPresentation(nextState.presentation);
+    setPrompt(nextState.promptValue);
+  }
+
+  function expandMediaComposerWithSnapshot(snapshot: GenerationSnapshot) {
+    const nextState = getVariationComposerState(snapshot.prompt);
+    setMediaComposerPresentation(nextState.presentation);
+    applySnapshotToComposer({
+      ...snapshot,
+      prompt: nextState.promptValue
+    });
+    focusComposerInput();
   }
 
   function buildSnapshotFromComposer(): GenerationSnapshot | null {
@@ -2630,7 +2764,16 @@ export function StudioApp({
     setActiveView("studio");
     setActiveRender(render);
     upsertHistoryRender(render);
-    applySnapshotToComposer(buildSnapshotFromRender(render));
+    const snapshot = buildSnapshotFromRender(render);
+    setMode(snapshot.mode);
+    setSelectedProjectId(snapshot.projectId);
+    setMediaComposerPresentation(getRenderSelectionComposerPresentation(render.status));
+
+    if (getRenderSelectionComposerHydration(render.status) === "rehydrate") {
+      applySnapshotToComposer(snapshot);
+    } else {
+      collapseMediaComposerForResult();
+    }
 
     const result = buildCurrentResultFromRender(render);
 
@@ -2798,6 +2941,7 @@ export function StudioApp({
       });
       setSurfaceState("result");
       setStatusLabel("Image ready");
+      collapseMediaComposerForResult();
       return;
     }
 
@@ -3015,13 +3159,21 @@ export function StudioApp({
     }
   }
 
+  function handleStartNewVariation() {
+    if (!activeRender) {
+      return;
+    }
+
+    expandMediaComposerWithSnapshot(buildSnapshotFromRender(activeRender));
+  }
+
   async function handleRetryActiveRender() {
     if (!activeRender) {
       return;
     }
 
     const snapshot = buildSnapshotFromRender(activeRender);
-    applySnapshotToComposer(snapshot);
+    expandMediaComposerWithSnapshot(snapshot);
     await generateWithSnapshot(snapshot);
   }
 
@@ -3127,6 +3279,7 @@ export function StudioApp({
       });
       setSurfaceState("result");
       setStatusLabel("Video ready");
+      collapseMediaComposerForResult();
       return;
     }
 
@@ -4085,72 +4238,24 @@ export function StudioApp({
                 </section>
               ) : null}
 
-              {surfaceState === "result" && currentResult && currentResult.kind !== "text" ? (
-                <section className="result-card">
-                  <div className="result-card-head">
-                    <div>
-                      <h2>{getCurrentResultDisplayTitle(currentResult)}</h2>
-                      <div className="result-meta">
-                        <span>{currentResult.modelId}</span>
-                        <span>{currentResult.kind}</span>
-                      </div>
-                    </div>
-                    <div className="result-card-actions">
-                      <div className="result-status">{statusLabel}</div>
-                      <button
-                        className="button-secondary"
-                        onClick={handleDownloadCurrentResult}
-                        type="button"
-                      >
-                        <Download aria-hidden="true" size={14} strokeWidth={1.9} />
-                        <span>Download</span>
-                      </button>
-                      {activeRender ? (
-                        <button
-                          className="button-secondary"
-                          onClick={() => void handleRetryActiveRender()}
-                          type="button"
-                        >
-                          <RotateCcw aria-hidden="true" size={14} strokeWidth={1.9} />
-                          <span>Retry</span>
-                        </button>
-                      ) : null}
-                    </div>
-                  </div>
-
-                  <div className="render-prompt-card">
-                    <div className="render-prompt-label">Prompt</div>
-                    <div className="render-prompt-copy">{currentResult.prompt}</div>
-                  </div>
-
-                  <div className="result-media-frame">
-                    {currentResult.kind === "image" ? (
-                      <img alt={getCurrentResultDisplayTitle(currentResult)} src={currentResult.src} />
-                    ) : null}
-                    {currentResult.kind === "video" ? (
-                      <video controls playsInline src={currentResult.src} />
-                    ) : null}
-                  </div>
-
-                  {activeRenderEvents.length > 0 ? (
-                    <div className="render-timeline" aria-label="Render lifecycle">
-                      {activeRenderEvents.map((event) => (
-                        <div className="render-timeline-row" key={event.id}>
-                          <div className="render-timeline-dot" />
-                          <div>
-                            <div className="render-timeline-head">
-                              <span>{event.message || event.eventType}</span>
-                              <span>{formatEventTime(event.createdAt)}</span>
-                            </div>
-                            <div className="render-timeline-meta">
-                              {event.toStatus || event.providerStatus || event.eventType}
-                            </div>
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                  ) : null}
-                </section>
+              {surfaceState === "result" &&
+              currentResult &&
+              currentResult.kind !== "text" &&
+              activeMediaResultRender ? (
+                <StudioResultFocus
+                  key={activeMediaResultRender.id}
+                  mediaKind={currentResult.kind}
+                  mediaSrc={currentResult.src}
+                  metaItems={activeMediaResultMetaItems}
+                  onDownload={handleDownloadCurrentResult}
+                  onNewVariation={handleStartNewVariation}
+                  onRetry={() => void handleRetryActiveRender()}
+                  processEvents={activeMediaResultProcessEvents}
+                  prompt={activeMediaResultRender.prompt}
+                  referencePreviewUrl={activeMediaResultReferenceUrl || undefined}
+                  statusLabel={statusLabel}
+                  title={getCurrentResultDisplayTitle(currentResult)}
+                />
               ) : null}
 
               {surfaceState === "failed" && activeRender ? (
@@ -4275,10 +4380,12 @@ export function StudioApp({
             </div>
           ) : null}
 
-          <section className="composer-shell">
+          {shouldShowComposer ? (
+            <section className="composer-shell">
             <textarea
               aria-label="Prompt"
               className="composer-input"
+              ref={composerInputRef}
               onChange={(event) => setPrompt(event.target.value)}
               onKeyDown={handlePromptKeyDown}
               placeholder="Describe the image, video, or text you want to generate..."
@@ -4582,7 +4689,8 @@ export function StudioApp({
                 </button>
               </div>
             </div>
-          </section>
+            </section>
+          ) : null}
 
           {error ? <div className="studio-error">{error}</div> : null}
             </>
