@@ -8,8 +8,10 @@ import {
 export const TITLE_MODEL_ID = "openrouter/free";
 export const DEFAULT_TITLE_MODEL_ID = TITLE_MODEL_ID;
 
-const TITLE_TIMEOUT_MS = 10_000;
-const TITLE_MAX_TOKENS = 24;
+const TITLE_TIMEOUT_MS = 15_000;
+// Higher than 24 so reasoning-style models that "think" before answering still
+// have room to emit the actual title in `content`.
+const TITLE_MAX_TOKENS = 200;
 const TITLE_TEMPERATURE = 0.2;
 
 export async function generateTitleFromPrompt(input: {
@@ -36,10 +38,21 @@ export async function generateTitleFromPrompt(input: {
       model: modelId,
       messages: buildTitleGenerationMessages(input.prompt),
       maxTokens: TITLE_MAX_TOKENS,
-      temperature: TITLE_TEMPERATURE
+      temperature: TITLE_TEMPERATURE,
+      // Reasoning models (e.g. deepseek-v4-flash) tend to spend their token
+      // budget in `reasoning` and leave `content` null. Tell OpenRouter to
+      // skip reasoning when supported; we only need the short title.
+      reasoning: { exclude: true }
     });
-    const rawContent = response.choices[0]?.message?.content;
-    const generatedTitle = sanitizeGeneratedTitle(rawContent);
+    const message = response.choices[0]?.message;
+    const rawContent = message?.content;
+    // Fallback: if a reasoning model still returned content=null, try the
+    // tail of `reasoning` (last line is usually the answer).
+    const reasoningTail =
+      !rawContent && typeof message?.reasoning === "string" && message.reasoning.trim()
+        ? message.reasoning.trim().split(/\r?\n/).filter(Boolean).pop()
+        : undefined;
+    const generatedTitle = sanitizeGeneratedTitle(rawContent ?? reasoningTail);
 
     if (!generatedTitle) {
       console.warn(

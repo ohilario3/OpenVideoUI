@@ -66,6 +66,8 @@ export type OpenRouterTextGenerationResponse = {
     message: {
       role: string;
       content: string | null;
+      reasoning?: string | null;
+      reasoning_details?: unknown;
     };
   }>;
   usage?: {

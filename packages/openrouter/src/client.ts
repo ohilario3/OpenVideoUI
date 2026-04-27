@@ -88,6 +88,7 @@ export class OpenRouterClient {
     messages?: OpenRouterChatMessage[];
     maxTokens?: number;
     temperature?: number;
+    reasoning?: { exclude?: boolean; effort?: "low" | "medium" | "high"; max_tokens?: number };
   }) {
     const messages =
       input.messages && input.messages.length > 0
@@ -101,15 +102,21 @@ export class OpenRouterClient {
             ]
           : [];
 
+    const body: Record<string, unknown> = {
+      model: input.model,
+      messages,
+      max_tokens: input.maxTokens,
+      temperature: input.temperature,
+      stream: false
+    };
+
+    if (input.reasoning) {
+      body.reasoning = input.reasoning;
+    }
+
     return this.request<OpenRouterTextGenerationResponse>("/chat/completions", {
       method: "POST",
-      body: {
-        model: input.model,
-        messages,
-        max_tokens: input.maxTokens,
-        temperature: input.temperature,
-        stream: false
-      }
+      body
     });
   }
 
