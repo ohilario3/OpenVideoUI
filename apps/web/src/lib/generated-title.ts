@@ -25,21 +25,36 @@ export async function generateTitleFromPrompt(input: {
     return fallbackTitle;
   }
 
+  const modelId = input.modelId || DEFAULT_TITLE_MODEL_ID;
+
   try {
     const client = createOpenRouterClient({
       apiKey: input.apiKey,
       timeoutMs: TITLE_TIMEOUT_MS
     });
     const response = await client.generateText({
-      model: input.modelId || DEFAULT_TITLE_MODEL_ID,
+      model: modelId,
       messages: buildTitleGenerationMessages(input.prompt),
       maxTokens: TITLE_MAX_TOKENS,
       temperature: TITLE_TEMPERATURE
     });
-    const generatedTitle = sanitizeGeneratedTitle(response.choices[0]?.message?.content);
+    const rawContent = response.choices[0]?.message?.content;
+    const generatedTitle = sanitizeGeneratedTitle(rawContent);
 
-    return generatedTitle ?? fallbackTitle;
-  } catch {
+    if (!generatedTitle) {
+      console.warn(
+        `[generated-title] model=${modelId} returned no usable title; using fallback. raw=`,
+        rawContent
+      );
+      return fallbackTitle;
+    }
+
+    return generatedTitle;
+  } catch (error) {
+    console.warn(
+      `[generated-title] model=${modelId} generation failed; using fallback.`,
+      error instanceof Error ? error.message : error
+    );
     return fallbackTitle;
   }
 }

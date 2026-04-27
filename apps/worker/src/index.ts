@@ -8,6 +8,7 @@ import {
 import { createOpenRouterClient } from "@openvideoui/openrouter";
 import { createRenderQueueClient } from "@openvideoui/queue";
 import { storeAsset } from "@openvideoui/storage";
+import { buildRenderAssetFileName } from "@openvideoui/shared";
 import {
   readRuntimeEnv,
   renderStatuses,
@@ -70,7 +71,12 @@ async function processRender(render: Awaited<ReturnType<typeof getRenderById>>) 
             mediaType: "video",
             source: client.getVideoContentUrl(providerJobId, index),
             sourceKind: "generated",
-            fileNameHint: `video-${index + 1}.mp4`,
+            fileNameHint: buildRenderAssetFileName({
+            title: render.title,
+            index,
+            extension: "mp4",
+            fallbackPrefix: "video"
+          }),
             headers: {
               Authorization: `Bearer ${env.openRouterApiKey}`
             }
