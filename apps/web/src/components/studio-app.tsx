@@ -275,9 +275,9 @@ const GALLERY_FILTERS: { id: GalleryFilter; label: string }[] = [
   { id: "video", label: "Vídeos" }
 ];
 const IDLE_TITLES: Record<Mode, string> = {
-  image: "Crie um enquadramento marcante.",
-  video: "Coloque uma cena em movimento.",
-  text: "Comece uma linha de raciocínio."
+  image: "Componha algo marcante.",
+  video: "Anime uma cena.",
+  text: "Comece a pensar."
 };
 const ACCENT_PALETTES: Record<
   AccentPaletteId,
@@ -4407,7 +4407,7 @@ export function StudioApp({
                         onClick={() => setVideoWorkflow("text-to-video")}
                         type="button"
                       >
-                        Prompt only
+                        Apenas prompt
                       </button>
                       <button
                         className={
@@ -4418,7 +4418,7 @@ export function StudioApp({
                         onClick={() => setVideoWorkflow("image-to-video")}
                         type="button"
                       >
-                        Use reference
+                        Com referência
                       </button>
                     </div>
                   </div>
@@ -4427,7 +4427,7 @@ export function StudioApp({
                 <div className="composer-advanced-grid">
                   {selectedModelOption.supportedAspectRatios?.length ? (
                     <label className="composer-field">
-                      <span>Aspect</span>
+                      <span>Proporção</span>
                       <select
                         aria-label="Proporção do vídeo"
                         className="composer-select"
@@ -4445,7 +4445,7 @@ export function StudioApp({
 
                   {selectedModelOption.supportedDurations?.length ? (
                     <label className="composer-field">
-                      <span>Duration</span>
+                      <span>Duração</span>
                       <select
                         aria-label="Duração do vídeo"
                         className="composer-select"
@@ -4463,7 +4463,7 @@ export function StudioApp({
 
                   {selectedModelOption.supportedResolutions?.length ? (
                     <label className="composer-field">
-                      <span>Resolution</span>
+                      <span>Resolução</span>
                       <select
                         aria-label="Resolução do vídeo"
                         className="composer-select"
@@ -4487,7 +4487,7 @@ export function StudioApp({
                       onChange={(event) => setGenerateAudio(event.target.checked)}
                       type="checkbox"
                     />
-                    <span>Generate audio</span>
+                    <span>Gerar áudio</span>
                   </label>
                 ) : null}
 
@@ -4503,13 +4503,13 @@ export function StudioApp({
                         type="file"
                       />
                       <div className="composer-reference-meta">
-                        {referenceFileName || "Choose a local image to guide this video."}
+                        {referenceFileName || "Escolha uma imagem local pra guiar este vídeo."}
                       </div>
                     </div>
                     <div className="composer-note">
                       {selectedModelOption.supportsImageToVideo
-                        ? "This model supports frame-based image-to-video."
-                        : "This model accepts a reference image for guidance."}
+                        ? "Este modelo suporta image-to-video baseado em frames."
+                        : "Este modelo aceita uma imagem de referência como guia."}
                     </div>
                   </div>
                 ) : null}

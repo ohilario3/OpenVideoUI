@@ -35,6 +35,11 @@ export async function POST(_request: NextRequest, context: RouteContext) {
   }
 
   if (!render.providerJobId) {
+    // Render still in pre-submission state (e.g. submission queued or in flight on the server side).
+    // Return current state with 200 so the UI can keep its "submitting" UX without flashing an error.
+    if (render.status === "submitting" || render.status === "queued") {
+      return NextResponse.json({ data: render });
+    }
     return NextResponse.json({ error: "Render does not have a provider job ID." }, { status: 400 });
   }
 
