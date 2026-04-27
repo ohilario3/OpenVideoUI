@@ -10,7 +10,7 @@ const beauRivage = Beau_Rivage({
 
 export const metadata: Metadata = {
   title: "OpenVideoUI",
-  description: "Project-centered studio for OpenRouter image and video generation."
+  description: "Estúdio centrado em projetos para geração de imagem e vídeo via OpenRouter."
 };
 
 export default function RootLayout({
@@ -19,7 +19,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en">
+    <html lang="pt-BR">
       <body className={beauRivage.variable}>{children}</body>
     </html>
   );

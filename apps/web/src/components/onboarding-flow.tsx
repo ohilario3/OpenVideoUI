@@ -27,45 +27,45 @@ const LOCAL_STORAGE_KEY = "openvideoui.local-settings";
 const FREE_TEXT_MODEL_ID = "openrouter/free";
 const SETUP_STEPS = [
   {
-    label: "Welcome",
-    eyebrow: "Local setup",
-    title: "Set up OpenVideoUI",
-    summary: "Set your profile, connect OpenRouter, and choose how OpenVideoUI should start."
+    label: "Boas-vindas",
+    eyebrow: "Configuração local",
+    title: "Configure o OpenVideoUI",
+    summary: "Defina seu perfil, conecte o OpenRouter e escolha como o OpenVideoUI deve iniciar."
   },
   {
-    label: "Profile",
-    eyebrow: "Your workspace",
-    title: "Name this local studio",
-    summary: "This is only used for the greeting and local session in this browser."
+    label: "Perfil",
+    eyebrow: "Seu workspace",
+    title: "Dê um nome a este estúdio local",
+    summary: "Usado apenas para a saudação e a sessão local neste navegador."
   },
   {
     label: "OpenRouter",
-    eyebrow: "Model access",
-    title: "Add your OpenRouter key",
-    summary: "The key powers model discovery and generation from your local OpenVideoUI setup."
+    eyebrow: "Acesso a modelos",
+    title: "Adicione sua chave da OpenRouter",
+    summary: "A chave habilita descoberta de modelos e geração no seu setup local do OpenVideoUI."
   },
   {
-    label: "Default",
-    eyebrow: "First run",
-    title: "Choose your starting model",
-    summary: "Pick the mode and model the studio should use when you enter for the first time."
+    label: "Padrão",
+    eyebrow: "Primeira execução",
+    title: "Escolha seu modelo inicial",
+    summary: "Escolha o modo e o modelo que o estúdio vai usar quando você entrar pela primeira vez."
   }
 ] as const;
 const MODE_OPTIONS: { id: Mode; label: string; description: string }[] = [
   {
     id: "video",
-    label: "Video",
-    description: "Motion prompts and image-guided clips."
+    label: "Vídeo",
+    description: "Prompts de movimento e clipes guiados por imagem."
   },
   {
     id: "image",
-    label: "Image",
-    description: "Still frames, references, and concept work."
+    label: "Imagem",
+    description: "Frames estáticos, referências e trabalho de conceito."
   },
   {
     id: "text",
-    label: "Text",
-    description: "A lightweight assistant thread for drafts."
+    label: "Texto",
+    description: "Conversa leve com assistente para rascunhos."
   }
 ];
 
@@ -84,7 +84,7 @@ function SetupModeIcon({ mode }: { mode: Mode }) {
 export function OnboardingFlow() {
   const router = useRouter();
   const [step, setStep] = useState(0);
-  const [name, setName] = useState("Local Creator");
+  const [name, setName] = useState("Criador Local");
   const [apiKey, setApiKey] = useState("");
   const [mode, setMode] = useState<Mode>("video");
   const [models, setModels] = useState<ModelOption[]>([]);
@@ -160,7 +160,7 @@ export function OnboardingFlow() {
         if (!cancelled) {
           setModels([]);
           setSelectedModel("");
-          setError("Unable to reach OpenRouter model discovery.");
+          setError("Não foi possível alcançar a descoberta de modelos do OpenRouter.");
         }
 
         return;
@@ -178,7 +178,7 @@ export function OnboardingFlow() {
       if (!response.ok || !payload.data) {
         setModels([]);
         setSelectedModel("");
-        setError(payload.error || "Unable to load models.");
+        setError(payload.error || "Não foi possível carregar os modelos.");
         return;
       }
 
@@ -243,7 +243,7 @@ export function OnboardingFlow() {
       });
 
       if (!sessionResponse.ok) {
-        setError("Unable to start the local session.");
+        setError("Não foi possível iniciar a sessão local.");
         return;
       }
 

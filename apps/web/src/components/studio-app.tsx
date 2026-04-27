@@ -270,14 +270,14 @@ const TEXT_LOADING_LINES = [
   "Refining the response..."
 ];
 const GALLERY_FILTERS: { id: GalleryFilter; label: string }[] = [
-  { id: "all", label: "All" },
-  { id: "image", label: "Images" },
-  { id: "video", label: "Videos" }
+  { id: "all", label: "Tudo" },
+  { id: "image", label: "Imagens" },
+  { id: "video", label: "Vídeos" }
 ];
 const IDLE_TITLES: Record<Mode, string> = {
-  image: "Frame something striking.",
-  video: "Set a scene in motion.",
-  text: "Start a line of thought."
+  image: "Crie um enquadramento marcante.",
+  video: "Coloque uma cena em movimento.",
+  text: "Comece uma linha de raciocínio."
 };
 const ACCENT_PALETTES: Record<
   AccentPaletteId,
@@ -499,14 +499,14 @@ function getSessionGreeting() {
   const hour = new Date().getHours();
 
   if (hour < 12) {
-    return "Good morning";
+    return "Bom dia";
   }
 
   if (hour < 18) {
-    return "Good afternoon";
+    return "Boa tarde";
   }
 
-  return "Good evening";
+  return "Boa noite";
 }
 
 function normalizeBackgroundUrlInput(value: unknown) {
@@ -802,11 +802,11 @@ function getCurrentResultDisplayTitle(result: CurrentResult) {
 
 function formatWorkflowTypeLabel(workflowType: RenderRecord["workflowType"]) {
   if (workflowType === "image-to-video") {
-    return "Use reference";
+    return "Usar referência";
   }
 
   if (workflowType === "text-to-video" || workflowType === "text-to-image") {
-    return "Prompt only";
+    return "Apenas prompt";
   }
 
   return workflowType;
@@ -3333,26 +3333,26 @@ export function StudioApp({
           </div>
 
           <button
-            aria-label="Home"
+            aria-label="Início"
             className={`studio-home-button${isSidebarCollapsed ? " collapsed" : ""}${activeView === "studio" && surfaceState === "idle" ? " active" : ""}`}
             onClick={handleGoHome}
-            title="Home"
+            title="Início"
             type="button"
           >
             <House aria-hidden="true" size={16} strokeWidth={1.9} />
-            {!isSidebarCollapsed ? <span>Home</span> : null}
+            {!isSidebarCollapsed ? <span>Início</span> : null}
           </button>
 
           <button
-            aria-label="Gallery"
+            aria-label="Galeria"
             aria-pressed={activeView === "gallery"}
             className={`studio-home-button${isSidebarCollapsed ? " collapsed" : ""}${activeView === "gallery" ? " active" : ""}`}
             onClick={handleOpenGallery}
-            title="Gallery"
+            title="Galeria"
             type="button"
           >
             <Images aria-hidden="true" size={16} strokeWidth={1.9} />
-            {!isSidebarCollapsed ? <span>Gallery</span> : null}
+            {!isSidebarCollapsed ? <span>Galeria</span> : null}
           </button>
         </div>
 
@@ -3362,7 +3362,7 @@ export function StudioApp({
           <div className="studio-group-head">
             <div className="studio-group-label">
               <Folder aria-hidden="true" size={14} strokeWidth={1.9} />
-              <span>Projects</span>
+              <span>Projetos</span>
             </div>
             <button
               aria-label={isCreatingProject ? "Close new project form" : "Create project"}
@@ -3378,17 +3378,17 @@ export function StudioApp({
           {isCreatingProject ? (
             <div className="studio-project-create">
               <input
-                aria-label="Project title"
+                aria-label="Título do projeto"
                 className="studio-inline-input"
                 onChange={(event) => setNewProjectTitle(event.target.value)}
-                placeholder="Project title"
+                placeholder="Título do projeto"
                 value={newProjectTitle}
               />
               <textarea
-                aria-label="Project description"
+                aria-label="Descrição do projeto"
                 className="studio-inline-textarea"
                 onChange={(event) => setNewProjectDescription(event.target.value)}
-                placeholder="Optional description"
+                placeholder="Descrição (opcional)"
                 value={newProjectDescription}
               />
               <div className="studio-inline-actions">
@@ -3441,11 +3441,11 @@ export function StudioApp({
               ) : (
                 <History aria-hidden="true" size={14} strokeWidth={1.9} />
               )}
-              <span>{mode === "text" ? "Chats" : "Recent"}</span>
+              <span>{mode === "text" ? "Chats" : "Recentes"}</span>
             </div>
             {mode === "text" ? (
               <button
-                aria-label="Create chat"
+                aria-label="Criar chat"
                 className="studio-mini-button"
                 onClick={() => void handleCreateChat()}
                 title="Create chat"
@@ -3570,7 +3570,7 @@ export function StudioApp({
         <div className="studio-toolbar">
           <div className="studio-toolbar-spacer" />
           <button
-            aria-label="Options"
+            aria-label="Opções"
             className="studio-icon-button"
             onClick={() => setIsSettingsOpen(true)}
             type="button"
@@ -3605,7 +3605,7 @@ export function StudioApp({
               onClick={(event) => event.stopPropagation()}
               role="alertdialog"
             >
-              <div className="confirm-kicker">Remove chat</div>
+              <div className="confirm-kicker">Remover chat</div>
               <h2 id="delete-chat-title">Delete this thread?</h2>
               <div className="confirm-copy">
                 <span>{pendingChatDeletion.title}</span> will be removed from this project.
@@ -3645,11 +3645,11 @@ export function StudioApp({
             >
               <div className="settings-head">
                 <div>
-                  <h2 id={settingsTitleId}>Settings</h2>
-                  <div className="settings-subtle">Local controls</div>
+                  <h2 id={settingsTitleId}>Configurações</h2>
+                  <div className="settings-subtle">Controles locais</div>
                 </div>
                 <button
-                  aria-label="Close settings"
+                  aria-label="Fechar configurações"
                   className="studio-icon-button"
                   onClick={() => setIsSettingsOpen(false)}
                   type="button"
@@ -3661,29 +3661,29 @@ export function StudioApp({
               <div className="settings-section">
                 <div className="settings-label">
                   <User aria-hidden="true" size={14} strokeWidth={1.9} />
-                  <span>Display name</span>
+                  <span>Nome de exibição</span>
                 </div>
                 <div className="settings-stack">
                   <input
-                    aria-label="Display name"
+                    aria-label="Nome de exibição"
                     className="settings-input"
                     onChange={(event) => setSettingsDisplayName(event.target.value)}
-                    placeholder="Local Creator"
+                    placeholder="Criador Local"
                     type="text"
                     value={settingsDisplayName}
                   />
                   <div className="settings-note">
-                    This name is shown in the idle banner for the local session.
+                    Este nome aparece na saudação da sessão local.
                   </div>
                   <div className="settings-actions">
-                    <div className="settings-key-state">Current: {displayName}</div>
+                    <div className="settings-key-state">Atual: {displayName}</div>
                     <button
                       className="button"
                       disabled={!canSaveDisplayName}
                       onClick={() => void saveDisplayName()}
                       type="button"
                     >
-                      {isSavingSettings ? "Saving..." : "Save name"}
+                      {isSavingSettings ? "Salvando..." : "Salvar nome"}
                     </button>
                   </div>
                 </div>
@@ -3692,11 +3692,11 @@ export function StudioApp({
               <div className="settings-section">
                 <div className="settings-label">
                   <WandSparkles aria-hidden="true" size={14} strokeWidth={1.9} />
-                  <span>Theme palette</span>
+                  <span>Paleta de cores</span>
                 </div>
                 <div className="settings-stack">
                   <select
-                    aria-label="Theme palette"
+                    aria-label="Paleta de cores"
                     className="settings-input"
                     onChange={(event) => setAccentPalette(event.target.value as AccentPaletteId)}
                     value={accentPalette}
@@ -3708,7 +3708,7 @@ export function StudioApp({
                     ))}
                   </select>
                   <div className="settings-note">
-                    Changes the accent color across actions, highlights, and focus states.
+                    Altera a cor de destaque em ações, realces e estados de foco.
                   </div>
                 </div>
               </div>
@@ -3716,7 +3716,7 @@ export function StudioApp({
               <div className="settings-section">
                 <div className="settings-label">
                   <WandSparkles aria-hidden="true" size={14} strokeWidth={1.9} />
-                  <span>Auto titles</span>
+                  <span>Títulos automáticos</span>
                 </div>
                 <div className="settings-stack">
                   <button
@@ -3734,19 +3734,19 @@ export function StudioApp({
                       <span>{selectedTitleModelOption?.name || titleModelId}</span>
                       <span>
                         {autoGeneratedTitles
-                          ? "On for new media and first chat messages"
-                          : "Off, using local fallback titles"}
+                          ? "Ativado para novas mídias e primeira mensagem de chat"
+                          : "Desativado, usando títulos de fallback locais"}
                       </span>
                     </span>
                     <span className="settings-toggle-state">
-                      {autoGeneratedTitles ? "On" : "Off"}
+                      {autoGeneratedTitles ? "Ligado" : "Desligado"}
                     </span>
                   </button>
                   <div className="settings-inline-head">
                     <div className="settings-inline-copy">
-                      <span className="settings-inline-label">Title model</span>
+                      <span className="settings-inline-label">Modelo do título</span>
                       <span className="settings-inline-note">
-                        Defaults to openrouter/free
+                        Padrão: openrouter/free
                       </span>
                     </div>
                     {selectedTitleModelPricingSummary ? (
@@ -3756,7 +3756,7 @@ export function StudioApp({
                     ) : null}
                   </div>
                   <select
-                    aria-label="Title model"
+                    aria-label="Modelo do título"
                     className="settings-input"
                     disabled={!apiKey || isLoadingTitleModels}
                     onChange={(event) => setTitleModelId(event.target.value)}
@@ -3769,13 +3769,13 @@ export function StudioApp({
                     ))}
                   </select>
                   <div className="settings-note">
-                    Creates short titles for new media and the first message in a new chat.
-                    Existing renders and chats are left unchanged.
+                    Gera títulos curtos para novas mídias e a primeira mensagem de um novo chat.
+                    Renders e chats existentes não são alterados.
                   </div>
                   {!apiKey ? (
                     <div className="settings-note">
-                      Save an OpenRouter key to load more title models. The default router stays
-                      available.
+                      Salve uma chave do OpenRouter para carregar mais modelos de título. O roteador padrão
+                      continua disponível.
                     </div>
                   ) : null}
                 </div>
@@ -3784,11 +3784,11 @@ export function StudioApp({
               <div className="settings-section">
                 <div className="settings-label">
                   <KeyRound aria-hidden="true" size={14} strokeWidth={1.9} />
-                  <span>OpenRouter key</span>
+                  <span>Chave OpenRouter</span>
                 </div>
                 <div className="settings-stack">
                   <input
-                    aria-label="OpenRouter API key"
+                    aria-label="Chave da API OpenRouter"
                     className="settings-input"
                     onChange={(event) => setSettingsApiKey(event.target.value)}
                     placeholder="sk-or-v1-..."
@@ -3796,8 +3796,8 @@ export function StudioApp({
                     value={settingsApiKey}
                   />
                   <div className="settings-note">
-                    This key is stored locally for this app and used for model sync and
-                    generation requests.
+                    Esta chave é armazenada localmente neste app e usada para sincronizar modelos e
+                    fazer requisições de geração.
                   </div>
                   <div className="settings-actions">
                     <div className="settings-key-state">
@@ -3817,7 +3817,7 @@ export function StudioApp({
               </div>
 
               <div className="settings-section">
-                <div className="settings-label">Current background</div>
+                <div className="settings-label">Plano de fundo atual</div>
                 <div className="settings-current">
                   <span>{backgroundSource.label}</span>
                   <span>
@@ -3828,10 +3828,10 @@ export function StudioApp({
               </div>
 
               <div className="settings-section">
-                <div className="settings-label">Use a link or a local file</div>
+                <div className="settings-label">Usar um link ou arquivo local</div>
                 <div className="settings-source-switch">
                   <button
-                    aria-label="Use background link"
+                    aria-label="Usar link de fundo"
                     className={
                       backgroundSourceMode === "link"
                         ? "settings-source-button active"
@@ -3844,7 +3844,7 @@ export function StudioApp({
                     <LinkIcon aria-hidden="true" size={16} strokeWidth={1.9} />
                   </button>
                   <button
-                    aria-label="Use local background file"
+                    aria-label="Usar arquivo local de fundo"
                     className={
                       backgroundSourceMode === "file"
                         ? "settings-source-button active"
@@ -3861,7 +3861,7 @@ export function StudioApp({
                 {backgroundSourceMode === "link" ? (
                   <div className="settings-stack">
                     <input
-                      aria-label="Background media URL"
+                      aria-label="URL da mídia de fundo"
                       className="settings-input"
                       onChange={(event) => setBackgroundUrlInput(event.target.value)}
                       placeholder="https://youtube.com/... https://streamable.com/... https://cdn.example.com/background.mp4 or .jpg"
@@ -3895,7 +3895,7 @@ export function StudioApp({
                   <div className="settings-stack">
                     <input
                       accept="image/*,video/*"
-                      aria-label="Local background image or video file"
+                      aria-label="Arquivo local de imagem ou vídeo de fundo"
                       className="settings-input settings-file-input"
                       onChange={handleBackgroundFileChange}
                       type="file"
@@ -3938,7 +3938,7 @@ export function StudioApp({
               <div className="settings-section diagnostics-section">
                 <div className="settings-label">
                   <Activity aria-hidden="true" size={14} strokeWidth={1.9} />
-                  <span>Diagnostics</span>
+                  <span>Diagnóstico</span>
                 </div>
                 <div className="diagnostics-card">
                   <div className="diagnostics-head">
@@ -3952,7 +3952,7 @@ export function StudioApp({
                         <div className="diagnostics-updated">{diagnosticsCheckedLabel}</div>
                       </div>
                       <div className="diagnostics-summary-copy">
-                        <strong>Local service snapshot</strong>
+                        <strong>Snapshot dos serviços locais</strong>
                         <span>{diagnosticsSummary}</span>
                       </div>
                     </div>
@@ -3969,7 +3969,7 @@ export function StudioApp({
 
                   <div className="diagnostics-totals" role="list">
                     <div className="diagnostics-total" role="listitem">
-                      <span>Ok</span>
+                      <span>OK</span>
                       <strong>{diagnosticCounts.ok}</strong>
                     </div>
                     <div className="diagnostics-total" role="listitem">
@@ -4040,12 +4040,12 @@ export function StudioApp({
             <section aria-labelledby="gallery-title" className="gallery-panel">
               <div className="gallery-head">
                 <div>
-                  <h1 id="gallery-title">Gallery</h1>
+                  <h1 id="gallery-title">Galeria</h1>
                   <div className="gallery-kicker">All projects</div>
                   <p>Completed images and videos from every project, gathered in one place.</p>
                 </div>
                 <div className="gallery-actions">
-                  <div aria-label="Filter gallery media" className="gallery-filter" role="group">
+                  <div aria-label="Filtrar mídia da galeria" className="gallery-filter" role="group">
                     {GALLERY_FILTERS.map((filter) => (
                       <button
                         aria-pressed={galleryFilter === filter.id}
@@ -4072,7 +4072,7 @@ export function StudioApp({
               </div>
 
               {visibleGalleryItems.length > 0 ? (
-                <div aria-label="Completed media gallery" className="gallery-grid" role="list">
+                <div aria-label="Galeria de mídias concluídas" className="gallery-grid" role="list">
                   {visibleGalleryItems.map((render) => (
                     <article className="gallery-card" key={render.id} role="listitem">
                       <button
@@ -4161,7 +4161,7 @@ export function StudioApp({
                       <div className="gallery-viewer-topline">
                         <span>{selectedGalleryRender.mediaType} render</span>
                         <button
-                          aria-label="Close gallery preview"
+                          aria-label="Fechar prévia da galeria"
                           className="gallery-viewer-close"
                           ref={galleryViewerCloseRef}
                           onClick={closeGalleryViewer}
@@ -4269,7 +4269,7 @@ export function StudioApp({
                       </div>
                     </div>
                     <div className="result-card-actions">
-                      <div className="failed-status">Failed</div>
+                      <div className="failed-status">Falhou</div>
                       {activeRender.outputUrls[0] ? (
                         <button
                           className="button-secondary"
@@ -4302,7 +4302,7 @@ export function StudioApp({
                     {activeRender.failureMessage || "This render failed before completion."}
                   </div>
                   {activeRenderEvents.length > 0 ? (
-                    <div className="render-timeline" aria-label="Render lifecycle">
+                    <div className="render-timeline" aria-label="Ciclo de vida do render">
                       {activeRenderEvents.map((event) => (
                         <div className="render-timeline-row" key={event.id}>
                           <div className="render-timeline-dot" />
@@ -4388,7 +4388,7 @@ export function StudioApp({
               ref={composerInputRef}
               onChange={(event) => setPrompt(event.target.value)}
               onKeyDown={handlePromptKeyDown}
-              placeholder="Describe the image, video, or text you want to generate..."
+              placeholder="Descreva a imagem, vídeo ou texto que você quer gerar..."
               value={prompt}
             />
 
@@ -4396,7 +4396,7 @@ export function StudioApp({
               <div className="composer-advanced">
                 {canUseImageGuidance ? (
                   <div className="composer-advanced-group">
-                    <div className="composer-advanced-label">Workflow</div>
+                    <div className="composer-advanced-label">Fluxo</div>
                     <div className="composer-inline-switch">
                       <button
                         className={
@@ -4429,7 +4429,7 @@ export function StudioApp({
                     <label className="composer-field">
                       <span>Aspect</span>
                       <select
-                        aria-label="Video aspect ratio"
+                        aria-label="Proporção do vídeo"
                         className="composer-select"
                         onChange={(event) => setAspectRatio(event.target.value)}
                         value={aspectRatio}
@@ -4447,7 +4447,7 @@ export function StudioApp({
                     <label className="composer-field">
                       <span>Duration</span>
                       <select
-                        aria-label="Video duration"
+                        aria-label="Duração do vídeo"
                         className="composer-select"
                         onChange={(event) => setDuration(Number(event.target.value))}
                         value={duration ?? ""}
@@ -4465,7 +4465,7 @@ export function StudioApp({
                     <label className="composer-field">
                       <span>Resolution</span>
                       <select
-                        aria-label="Video resolution"
+                        aria-label="Resolução do vídeo"
                         className="composer-select"
                         onChange={(event) => setResolution(event.target.value)}
                         value={resolution}
@@ -4493,11 +4493,11 @@ export function StudioApp({
 
                 {imageGuidanceMode === "image-to-video" ? (
                   <div className="composer-reference">
-                    <div className="composer-advanced-label">Reference image</div>
+                    <div className="composer-advanced-label">Imagem de referência</div>
                     <div className="composer-reference-row">
                     <input
                       accept="image/*"
-                      aria-label="Reference image"
+                      aria-label="Imagem de referência"
                       className="composer-reference-input"
                         onChange={handleReferenceFileChange}
                         type="file"
@@ -4547,10 +4547,10 @@ export function StudioApp({
                   </button>
 
                   {isPresetMenuOpen ? (
-                    <div className="preset-popover" role="dialog" aria-label="Prompt presets">
+                    <div className="preset-popover" role="dialog" aria-label="Modelos de prompt">
                       <div className="preset-save">
                         <input
-                          aria-label="Preset title"
+                          aria-label="Título do preset"
                           className="preset-title-input"
                           onChange={(event) => setPresetTitle(event.target.value)}
                           placeholder={buildPresetTitle(prompt)}
@@ -4685,7 +4685,7 @@ export function StudioApp({
                   type="button"
                 >
                   <SendHorizontal aria-hidden="true" size={15} strokeWidth={2} />
-                  <span>Generate</span>
+                  <span>Gerar</span>
                 </button>
               </div>
             </div>
