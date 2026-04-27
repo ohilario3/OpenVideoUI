@@ -5,7 +5,7 @@ import {
 } from "@openvideoui/database";
 import { createOpenRouterClient } from "@openvideoui/openrouter";
 import { storeAsset } from "@openvideoui/storage";
-import { normalizeOpenRouterError } from "@openvideoui/shared";
+import { buildRenderAssetFileName, normalizeOpenRouterError } from "@openvideoui/shared";
 import { requireSession } from "@/lib/api-auth";
 import { getOpenRouterApiKey } from "@/lib/openrouter-key";
 
@@ -35,12 +35,10 @@ export async function POST(_request: NextRequest, context: RouteContext) {
   }
 
   if (!render.providerJobId) {
-    // Render still in pre-submission state (e.g. submission queued or in flight on the server side).
-    // Return current state with 200 so the UI can keep its "submitting" UX without flashing an error.
-    if (render.status === "submitting" || render.status === "queued") {
-      return NextResponse.json({ data: render });
-    }
-    return NextResponse.json({ error: "Render does not have a provider job ID." }, { status: 400 });
+    // No provider job id yet (submission hasn't reached the OpenRouter side, or the worker
+    // hasn't persisted it yet). Surface the current render record with 200 instead of throwing
+    // a 400 — the UI can decide what to render based on render.status.
+    return NextResponse.json({ data: render });
   }
 
   const canRecoverFailedAssetDownload =
@@ -74,7 +72,12 @@ export async function POST(_request: NextRequest, context: RouteContext) {
               mediaType: "video",
               source: client.getVideoContentUrl(render.providerJobId!, index),
               sourceKind: "generated",
-              fileNameHint: `video-${index + 1}.mp4`,
+              fileNameHint: buildRenderAssetFileName({
+                title: render.title,
+                index,
+                extension: "mp4",
+                fallbackPrefix: "video"
+              }),
               headers: {
                 Authorization: `Bearer ${apiKey}`
               }
